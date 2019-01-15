@@ -1,0 +1,6 @@
+sphinx
+sphinx_rtd_theme
+pylint
+pylint-quotes
+yapf
+pip-tools
