@@ -84,3 +84,21 @@ class YoRHaError(Exception):
         """
         sys.stderr.write(self.format_trace())
         sys.stderr.flush()
+
+
+class RunError(YoRHaError):
+    """ Runtime Error.
+
+    Attributes:
+        cmd(str) : Command Line Args invoked Runtime Error.
+        out(str) : Standard Out.
+        message(str) : Exception Messages.
+
+    """
+
+    def __init__(self, cmd, out, message=''):
+        details = {'cmd': cmd or '', 'ptyout': out or '', 'out': out or '', 'message': message or ''}
+        YoRHaError.__init__(self, details)
+
+    def __str__(self) -> str:
+        return '%s:\n%s:\n%s' % (self.cmd, self.message, self.out)
