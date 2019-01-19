@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """Tests for `yorha` package."""
 
 import pytest
-
 
 from yorha import yorha
 

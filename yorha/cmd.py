@@ -7,7 +7,7 @@ from subprocess import TimeoutExpired, CalledProcessError
 from yorha import STRING_SET
 from yorha.exception import RunError
 
-TIMEOUT = 20
+TIMEOUT = 300
 
 
 def run_bg(cmd, cwd=None, shell=False, debug=False):
@@ -21,9 +21,6 @@ def run_bg(cmd, cwd=None, shell=False, debug=False):
 
     Raises:
         RunError: File not found.
-
-    Returns:
-        None: None
     """
     cmd = _shell(cmd) if shell else cmd
     _debug(cmd, debug)
@@ -34,15 +31,15 @@ def run_bg(cmd, cwd=None, shell=False, debug=False):
         raise RunError(cmd, None, message='Raise CalledProcess Error : %s' % out)
 
 
-def run(cmd, cwd=None, timeout=TIMEOUT, shell=False, debug=False):
+def run(cmd, cwd=None, timeout=TIMEOUT, shell=False, debug=False) -> tuple or None:
     """ Execute a child program in a new process.
 
     Arguments:
         cmd(str): A string of program arguments.
         cwd(str): Sets the current directory before the child is executed.
         timeout(int): Expired Time. default : 300.
-        debug(bool): debug mode flag.
         shell(bool): If true, the command will be executed through the shell.
+        debug(bool): debug mode flag.
 
     Raises:
         RunError: File not found.
@@ -80,7 +77,7 @@ def run(cmd, cwd=None, timeout=TIMEOUT, shell=False, debug=False):
     return None
 
 
-def _shell(cmd):
+def _shell(cmd) -> str:
     """ Shell Mode Check.
 
     Arguments:
@@ -99,6 +96,7 @@ def _debug(cmd, debug=False):
 
     Arguments:
         cmd(str): A string of program arguments.
+        debug(bool): debug flag.
     """
     if debug:
         sys.stderr.write(''.join(cmd) + '\n')
