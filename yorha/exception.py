@@ -93,7 +93,6 @@ class RunError(YoRHaError):
         cmd(str) : Command Line Args invoked Runtime Error.
         out(str) : Standard Out.
         message(str) : Exception Messages.
-
     """
 
     def __init__(self, cmd, out, message=''):
@@ -102,3 +101,15 @@ class RunError(YoRHaError):
 
     def __str__(self) -> str:
         return '%s:\n%s:\n%s' % (self.cmd, self.message, self.out)
+
+class WorkspaceError(YoRHaError):
+    """ Workspace Error.
+
+    Arrtibutes:
+        details(dict): A free form text message.
+    """
+
+    def __init__(self, details):
+        if isinstance(details, STRING_SET):
+            details = {'message': details}
+        YoRHaError.__init__(self, details)
