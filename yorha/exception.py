@@ -102,8 +102,22 @@ class RunError(YoRHaError):
     def __str__(self) -> str:
         return '%s:\n%s:\n%s' % (self.cmd, self.message, self.out)
 
+
 class WorkspaceError(YoRHaError):
     """ Workspace Error.
+
+    Arrtibutes:
+        details(dict): A free form text message.
+    """
+
+    def __init__(self, details):
+        if isinstance(details, STRING_SET):
+            details = {'message': details}
+        YoRHaError.__init__(self, details)
+
+
+class AndroidError(YoRHaError):
+    """ Android Error.
 
     Arrtibutes:
         details(dict): A free form text message.

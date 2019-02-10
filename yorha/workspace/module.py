@@ -54,3 +54,11 @@ class Workspace:
             default_path(str): default path.
         """
         return self.default_path
+
+    def mkdir(self, folder, host='', clear=False):
+        """ Mkdir Workspace. Default: Workspace Root.
+
+        Arguments:
+            folder(str): create folder name.
+            host(str) : base directory. default : '.'
+            clear(bool) : if true, create folder with clear all.

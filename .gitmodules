@@ -1,0 +1,3 @@
+[submodule "vendor/minicap"]
+	path = vendor/minicap
+	url = git@github.com:openstf/minicap.git
