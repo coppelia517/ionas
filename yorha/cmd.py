@@ -10,7 +10,7 @@ from yorha.exception import RunError
 TIMEOUT = 300
 
 
-def run_bg(cmd, cwd=None, shell=False, debug=False):
+def run_bg(cmd, cwd=None, shell=False, debug=False) -> None:
     """ Execute a child program in a new process.
 
     Arguments:
