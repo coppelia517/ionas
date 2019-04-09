@@ -1,7 +1,7 @@
 """ YoRHa base module : exceptions. """
 import sys
 import traceback
-from typing import Dict
+from typing import Dict, Optional
 
 from yorha import STRING_SET
 
@@ -37,33 +37,44 @@ class YoRHaError(Exception):
             return '%s\n Server side traceback: \n%s' % (message, trace)
         return message
 
-    def __getattr__(self, attribute) -> str:
+    def __getattr__(self, attribute) -> Optional[str]:
+        """ Get Attribute.
+
+        Returns:
+            attribute(Optional[str]): return attribute if item exist otherwise None.
+        """
+        if self.details is None:
+            return None
         return self.details[attribute]
 
     @property
-    def message(self) -> str:
+    def message(self) -> Optional[str]:
         """ Return message attribute in details.
 
         Returns:
-            message(str): messages in details.
+            message(Optional[str]): return messages in details otherwise None.
         """
+        if self.details is None:
+            return None
         return self.details['message']
 
-    def json(self) -> Dict[str, str]:
+    def json(self) -> Optional[Dict[str, str]]:
         """ Flush details all. format : json format.
 
         Returns:
-            details({<string>:<base type>, ...}): flush details.
+            details(Optional[Dict[str, str]]): flush details.
         """
         return self.details
 
-    def has_trace(self) -> str or None:
+    def has_trace(self) -> Optional[str]:
         """ Does trace attribute have.
 
         Returns:
-            trace(str): return trace or None.
+            trace(Optional[str]): return trace or None.
         """
-        return self.details['trace'] if 'trace' in self.details else None
+        if self.details is None:
+            return None
+        return self.details['trace'] if 'trace' in self.details.keys() else None
 
     def format_trace(self) -> str:
         """ Return formatted trace attribute.
@@ -73,13 +84,16 @@ class YoRHaError(Exception):
         """
         if self.has_trace() is not None:
             convert = []
-            for entry in self.trace:
-                convert.append(tuple(entry))
-            formatted = traceback.format_list(convert)
-            return ''.join(formatted)
+            if self.trace is None:
+                return ''
+            else:
+                for entry in self.trace:
+                    convert.append(tuple(entry))
+                formatted = traceback.format_list(convert)  # type: ignore
+                return ''.join(formatted)
         return ''
 
-    def print_trace(self):
+    def print_trace(self) -> None:
         """ Print out trace attribute.
         """
         sys.stderr.write(self.format_trace())
@@ -95,7 +109,7 @@ class RunError(YoRHaError):
         message(str) : Exception Messages.
     """
 
-    def __init__(self, cmd, out, message=''):
+    def __init__(self, cmd, out, message='') -> None:
         details = {'cmd': cmd or '', 'ptyout': out or '', 'out': out or '', 'message': message or ''}
         YoRHaError.__init__(self, details)
 
@@ -110,7 +124,7 @@ class WorkspaceError(YoRHaError):
         details(dict): A free form text message.
     """
 
-    def __init__(self, details):
+    def __init__(self, details) -> None:
         if isinstance(details, STRING_SET):
             details = {'message': details}
         YoRHaError.__init__(self, details)
@@ -123,7 +137,7 @@ class AndroidError(YoRHaError):
         details(dict): A free form text message.
     """
 
-    def __init__(self, details):
+    def __init__(self, details) -> None:
         if isinstance(details, STRING_SET):
             details = {'message': details}
         YoRHaError.__init__(self, details)
