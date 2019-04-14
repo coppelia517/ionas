@@ -1,6 +1,10 @@
+# YoRHa Development Pacakage 
 sphinx
 sphinx_rtd_theme
+Jinja2>=2.10.1
 pylint
 pylint-quotes
+flake8
+mypy
 yapf
 pip-tools
