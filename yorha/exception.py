@@ -1,7 +1,7 @@
 """ YoRHa base module : exceptions. """
 import sys
 import traceback
-from typing import Dict, Optional
+from typing import Dict, Optional, Union, cast
 
 from yorha import STRING_SET
 
@@ -15,7 +15,7 @@ class YoRHaError(Exception):
     """
     details = None  # {<string>: <base type>, ... }
 
-    def __init__(self, details):
+    def __init__(self, details: Optional[Dict[str, str]]) -> None:
         if not isinstance(details, Dict):
             raise Exception('YoRHa Error : Details must be a dictionary. ')
         for key in details:
@@ -29,15 +29,15 @@ class YoRHaError(Exception):
         self.details = details
         super(YoRHaError, self).__init__(self.details['message'])
 
-    def __str__(self):
-        message = self.message.encode('utf8')
+    def __str__(self) -> str:
+        message = self.message.encode('utf8') if self.message else ''
         trace = self.format_trace()
         if trace:
-            trace = trace.encode('utf8')
+            trace = str(trace.encode('utf8'))
             return '%s\n Server side traceback: \n%s' % (message, trace)
-        return message
+        return cast(str, message)
 
-    def __getattr__(self, attribute) -> Optional[str]:
+    def __getattr__(self, attribute: str) -> Optional[str]:
         """ Get Attribute.
 
         Returns:
@@ -109,7 +109,7 @@ class RunError(YoRHaError):
         message(str) : Exception Messages.
     """
 
-    def __init__(self, cmd, out, message='') -> None:
+    def __init__(self, cmd: str, out: str, message: str = '') -> None:
         details = {'cmd': cmd or '', 'ptyout': out or '', 'out': out or '', 'message': message or ''}
         YoRHaError.__init__(self, details)
 
@@ -124,7 +124,7 @@ class WorkspaceError(YoRHaError):
         details(dict): A free form text message.
     """
 
-    def __init__(self, details) -> None:
+    def __init__(self, details: Union[str, Dict[str, str]]) -> None:
         if isinstance(details, STRING_SET):
             details = {'message': details}
         YoRHaError.__init__(self, details)
@@ -137,7 +137,7 @@ class AndroidError(YoRHaError):
         details(dict): A free form text message.
     """
 
-    def __init__(self, details) -> None:
+    def __init__(self, details: Union[str, Dict[str, str]]) -> None:
         if isinstance(details, STRING_SET):
             details = {'message': details}
         YoRHaError.__init__(self, details)
