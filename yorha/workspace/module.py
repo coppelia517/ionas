@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class Workspace:
     """ YoRHa Workspace Module.
-
+ 
     Attributes:
         path(str): workspace base path.
         clear(bool): first time, workspace base folder cleared. default: True.
@@ -62,3 +62,4 @@ class Workspace:
             folder(str): create folder name.
             host(str) : base directory. default : '.'
             clear(bool) : if true, create folder with clear all.
+        """
