@@ -16,6 +16,7 @@ class AndroidProp:
     KEYCODE_DOWN = 'KEYCODE_DPAD_DOWN'
     KEYCODE_UP = 'KEYCODE_DPAD_UP'
     KEYCODE_SPACE = 'KEYCODE_SPACE'
+    KEYCODE_POWER = 'KEYCODE_POWER'
 
     # adb get property
     PROP_LANGUAGE = 'persist.sys.language'
