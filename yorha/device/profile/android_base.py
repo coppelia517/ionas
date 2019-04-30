@@ -1,9 +1,13 @@
 """ Android Device Base Class. """
 
 
-class Android:
+class AndroidProp:
     """ Android Device Base Class.
     """
+    SERIAL: str = ''
+    IP: str = ''
+    PORT: str = ''
+    TMP_PICTURE: str = ''
 
     # adb keyevent
     KEYCODE_ENTER = 'KEYCODE_DPAD_CENTER'
