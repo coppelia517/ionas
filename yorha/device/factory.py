@@ -1,14 +1,17 @@
 """ YoRHa Plugins : Adb Factory Utility. """
+from typing import TypeVar, Dict, List, Any
 from yorha.device.adb import Android
 from yorha.device.adb import PROFILE_PATH
+
+T = TypeVar('T')
 
 
 class Singleton(type):
     """ Singleton meta-class
     """
-    _instances = {}
+    _instances: Dict[Any, type] = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: List[Any], **kwargs: Dict[str, Any]) -> type:
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
@@ -20,7 +23,7 @@ class AndroidFactory:
     __metaclass__ = Singleton
 
     @classmethod
-    def create(cls, serial, host=PROFILE_PATH) -> Android:
+    def create(cls, serial: str, host: str = PROFILE_PATH) -> Android:
         """ Create Android Device.
 
         Arguments:

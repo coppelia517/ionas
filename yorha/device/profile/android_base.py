@@ -1,9 +1,13 @@
 """ Android Device Base Class. """
 
 
-class Android:
+class AndroidProp:
     """ Android Device Base Class.
     """
+    SERIAL: str = ''
+    IP: str = ''
+    PORT: str = ''
+    TMP_PICTURE: str = ''
 
     # adb keyevent
     KEYCODE_ENTER = 'KEYCODE_DPAD_CENTER'
@@ -12,6 +16,7 @@ class Android:
     KEYCODE_DOWN = 'KEYCODE_DPAD_DOWN'
     KEYCODE_UP = 'KEYCODE_DPAD_UP'
     KEYCODE_SPACE = 'KEYCODE_SPACE'
+    KEYCODE_POWER = 'KEYCODE_POWER'
 
     # adb get property
     PROP_LANGUAGE = 'persist.sys.language'

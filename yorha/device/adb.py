@@ -1,16 +1,18 @@
 """ YoRHa Plugins : Android Device Utility. """
+from typing import Optional, cast
 import os
 import sys
 import time
 import logging
 import importlib
-from typing import Dict
 
 from yorha.cmd import run, run_bg
 from yorha.exception import AndroidError
 
+from yorha.device.profile import AndroidProp
+
 PROFILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'profile'))
-if not PROFILE_PATH in sys.path:
+if PROFILE_PATH not in sys.path:
     sys.path.insert(0, PROFILE_PATH)
 
 TIMEOUT = 30
@@ -26,11 +28,12 @@ class AndroidBase:
         host(str): base path of profile. default: PROFILE_PATH.
     """
 
-    def __init__(self, profile, host=PROFILE_PATH):
+    def __init__(self, profile: str, host: str = PROFILE_PATH) -> None:
+        self.profile: AndroidProp
         self.WIFI = False
         self._set_profile(profile, host)
 
-    def _set_profile(self, name, host) -> None:
+    def _set_profile(self, name: str, host: str) -> None:
         """ Set Android Profile.
 
         Arguments:
@@ -41,7 +44,6 @@ class AndroidBase:
             AndroidError: 1. Device Not Found.
                           2. Pforile Data Not Found.
         """
-        self.profile = None
         class_name = '_' + name
         if not os.path.exists(host):
             logger.warning('Not Found. : %s', host)
@@ -68,15 +70,15 @@ class AndroidBase:
             logger.debug('Raise Exception : %s', str(e))
             raise AndroidError(str(e))
 
-    def get_profile(self) -> Dict:
+    def get_profile(self) -> AndroidProp:
         """ Get Android Profile.
 
         Returns:
-            profile(Dict): return profile value.
+            profile(AndroidProp): return profile value.
         """
         return self.profile
 
-    def __exec(self, cmd, timeout=TIMEOUT, debug=False) -> str:
+    def __exec(self, cmd: str, timeout: int = TIMEOUT, debug: bool = False) -> str:
         """ Execute Command for target android.
 
         Arguments:
@@ -94,16 +96,16 @@ class AndroidBase:
         if result:
             try:
                 if not result[0]:
-                    result = result[1].replace('\r', '')
+                    result_value = result[1].replace('\r', '')
                 else:
                     logger.warning(result[2].replace('\r', ''))
                     raise AndroidError('Android Execute Failed. : %s' % result[2].replace('\r', ''))
             except Exception as e:
                 logger.warning(str(e))
                 raise AndroidError(str(e))
-        return result
+        return result_value
 
-    def __exec_bg(self, cmd, debug=False) -> None:
+    def __exec_bg(self, cmd: str, debug: bool = False) -> None:
         """ Execute Command BackGround for target android.
 
         Arguments:
@@ -122,7 +124,7 @@ class AndroidBase:
             return '-s %s' % (self.profile.SERIAL)
         return '-s %s:%s' % (self.profile.IP, self.profile.PORT)
 
-    def _adb(self, command, sync=True, debug=False, timeout=TIMEOUT) -> str or None:
+    def _adb(self, command: str, sync: bool = True, debug: bool = False, timeout: int = TIMEOUT) -> Optional[str]:
         """ Android Debug Bridge Command Run.
 
         Arguments:
@@ -132,22 +134,23 @@ class AndroidBase:
             timeout(int): Expired Time. default: 30.
 
         Returns:
-            result(str) or None: adb result.
+            result(Optional[str]): adb result.
         """
         command = 'adb %s' % command
         if sync:
             return self.__exec(command, timeout, debug)
-        return self.__exec_bg(command, debug)
+        self.__exec_bg(command, debug)
+        return None
 
     def kill(self) -> str:
         """ Call `adb kill-server`.
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
-        return self._adb('kill-server')
+        return cast(str, self._adb('kill-server'))
 
-    def adb(self, command, sync=True, debug=False, timeout=TIMEOUT) -> str or None:
+    def adb(self, command: str, sync: bool = True, debug: bool = False, timeout: int = TIMEOUT) -> Optional[str]:
         """ Call `adb command.`
 
         Arguments:
@@ -157,12 +160,12 @@ class AndroidBase:
             timeout(int): Expired Time. default: 30.
 
         Returns:
-            result(str) or None: adb result.
+            result(Optional[str]): adb result.
         """
         command = '%s %s' % (self._target(), command)
         return self._adb(command, sync, debug, timeout)
 
-    def push(self, src, dst, timeout=TIMEOUT) -> str:
+    def push(self, src: str, dst: str, timeout: int = TIMEOUT) -> Optional[str]:
         """ Call `adb -s {target} push src dst`
 
         Arguments:
@@ -171,12 +174,12 @@ class AndroidBase:
             timeout(int): Expired Time. default: 30.
 
         Returns:
-            result(str): adb push result.
+            result(Optional[str]): adb push result.
         """
         command = 'push %s %s' % (src, dst)
-        return self.adb(command, timeout)
+        return self.adb(command, timeout=timeout)
 
-    def pull(self, src, dst, timeout=TIMEOUT) -> str:
+    def pull(self, src: str, dst: str, timeout: int = TIMEOUT) -> Optional[str]:
         """ Call `adb -s {target} pull src dst`
 
         Arguments:
@@ -185,12 +188,12 @@ class AndroidBase:
             timeout(int): Expired Time. default: 30.
 
         Returns:
-            result(str): adb pull result.
+            result(Optional[str]): adb pull result.
         """
         command = 'pull %s %s' % (src, dst)
-        return self.adb(command, timeout)
+        return self.adb(command, timeout=timeout)
 
-    def shell(self, command, sync=True, debug=False, timeout=TIMEOUT) -> str or None:
+    def shell(self, command: str, sync: bool = True, debug: bool = False, timeout: int = TIMEOUT) -> Optional[str]:
         """ Call `adb -s {target} shell command`
 
         Arguments:
@@ -200,47 +203,49 @@ class AndroidBase:
             timeout(int): Expired Time. default: 30.
 
         Returns:
-            result(str) or None: adb result.
+            result(Optional[str]): adb result.
         """
         command = 'shell %s' % (command)
         return self.adb(command, sync, debug, timeout)
 
-    def connect(self) -> str or None:
+    def connect(self) -> Optional[str]:
         """ Call `adb connect [IP Address]:[Port]`
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         if self.WIFI:
             command = 'connect %s:%s' % (self.profile.IP, self.profile.PORT)
             return self._adb(command)
+        return None
 
-    def disconnect(self) -> str or None:
+    def disconnect(self) -> Optional[str]:
         """ Call `adb disconnect [IP Address]:[Port]`
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         if self.WIFI:
             command = 'disconnect %s:%s' % (self.profile.IP, self.profile.PORT)
             return self._adb(command)
+        return None
 
-    def usb(self) -> str:
+    def usb(self) -> Optional[str]:
         """ Call `adb usb`
 
         Returns:
-            result(str): result
+            result(Optional[str]): result
         """
         if self.WIFI:
             self.disconnect()
             self.WIFI = False
         return self.adb('usb')
 
-    def tcpip(self) -> str:
+    def tcpip(self) -> Optional[str]:
         """ Call `adb tcpip [Port]`
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         if not self.WIFI:
             self.disconnect()
@@ -248,11 +253,11 @@ class AndroidBase:
         command = 'tcpip %s' % (self.profile.PORT)
         return self._adb(command)
 
-    def root(self) -> str:
+    def root(self) -> Optional[str]:
         """ Call `adb -s [SERIAL] root`
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         logger.debug(str(self.adb('root')))
         self.kill()
@@ -272,7 +277,7 @@ class AndroidBase:
         """
         logger.debug(self.adb('reboot'))
 
-    def install(self, application, timeout=TIMEOUT) -> str:
+    def install(self, application: str, timeout: int = TIMEOUT) -> Optional[str]:
         """ Call `adb -s [SERIAL] install -r [application]`
 
         Arguments:
@@ -280,12 +285,12 @@ class AndroidBase:
             timeout(int): Expired Time. default : 30.
 
         Returns:
-            result(str): result
+            result(Optional[str]): result
         """
         command = 'install -r %s' % (application)
         return self.adb(command, timeout=timeout)
 
-    def uninstall(self, application, timeout=TIMEOUT) -> str:
+    def uninstall(self, application: str, timeout: int = TIMEOUT) -> Optional[str]:
         """ Call `adb -s [SERIAL] uninstall [application]`
 
         Arguments:
@@ -293,19 +298,19 @@ class AndroidBase:
             timeout(int): Expired Time. default : 30.
 
         Returns:
-            result(str): result
+            result(Optional[str]): result
         """
         command = 'uninstall %s' % (application)
         return self.adb(command, timeout=timeout)
 
-    def wait(self, timeout=TIMEOUT) -> str:
+    def wait(self, timeout: int = TIMEOUT) -> Optional[str]:
         """ Call `adb -s [SERIAL] wait-for-device`
 
         Arguments:
             timeout(int): Expired Time. default : 30.
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         return self.adb('wait-for-device', timeout=timeout)
 
@@ -318,10 +323,10 @@ class Android:
         host(str): base path of profile. default: PROFILE_PATH.
     """
 
-    def __init__(self, profile, host=PROFILE_PATH):
+    def __init__(self, profile: str, host: str = PROFILE_PATH) -> None:
         self._adb = AndroidBase(profile, host)
 
-    def get(self) -> Dict:
+    def get(self) -> AndroidProp:
         """ Get profile Dict.
 
         Returns:
@@ -329,7 +334,7 @@ class Android:
         """
         return self._adb.get_profile()
 
-    def shell(self, command, sync=True, debug=False, timeout=TIMEOUT) -> str or None:
+    def shell(self, command: str, sync: bool = True, debug: bool = False, timeout: int = TIMEOUT) -> Optional[str]:
         """ Call `adb -s [serial] shell command`
 
         Arguments:
@@ -339,23 +344,23 @@ class Android:
             timeout(int): Expired Time. default: 30.
 
         Returns:
-            result(str) or None: adb result.
+            result(Optional[str]): adb result.
         """
         return self._adb.shell(command, sync, debug, timeout)
 
-    def dumpsys(self, category) -> str:
+    def dumpsys(self, category: str) -> Optional[str]:
         """ Call `adb -s [serial] shell dumpsys [category]`
 
         Arguments:
             category(str): dumpsys category.
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         command = 'dumpsys %s' % category
         return self.shell(command)
 
-    def snapshot(self, filename, host) -> str:
+    def snapshot(self, filename: str, host: str) -> Optional[str]:
         """ get snapshot by Call `adb -s [SERIAL] shell screencap -p [directory]`
 
         Arguments:
@@ -363,25 +368,25 @@ class Android:
             host(str): pull destination path.
 
         Returns:
-            filepath(str): capture screenshot filepath.
+            filepath(Optional[str]): capture screenshot filepath.
         """
         self._adb.shell('screencap -p /sdcard/%s' % (filename))
         self._adb.pull('/sdcard/%s' % (filename), host)
         self._adb.shell('rm /sdcard/%s' % (filename))
         return os.path.join(host, filename)
 
-    def start(self, intent) -> str:
+    def start(self, intent: str) -> Optional[str]:
         """ Call `adb -s [SERIAL] shell am start -n [intent]`
 
         Arguments:
             intent(str): start intent name.
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         return self._adb.shell('am start -n %s' % intent)
 
-    def push(self, src, dst) -> str:
+    def push(self, src: str, dst: str) -> Optional[str]:
         """ Call `adb -s {target} push src dst`
 
         Arguments:
@@ -389,11 +394,11 @@ class Android:
             dst(str): push destination path.
 
         Returns:
-            result(str): adb push result.
+            result(Optional[str]): adb push result.
         """
         return self._adb.push(src, dst)
 
-    def pull(self, src, dst) -> str:
+    def pull(self, src: str, dst: str) -> Optional[str]:
         """ Call `adb -s {target} pull src dst`
 
         Arguments:
@@ -401,11 +406,11 @@ class Android:
             dst(str): pull destination path.
 
         Returns:
-            result(str): adb pull result.
+            result(Optional[str]): adb pull result.
         """
         return self._adb.pull(src, dst)
 
-    def install(self, application) -> None:
+    def install(self, application: str) -> None:
         """ Call `adb -s [SERIAL] install -r [application]`
 
         Arguments:
@@ -413,7 +418,7 @@ class Android:
         """
         self._adb.install(application)
 
-    def uninstall(self, application) -> None:
+    def uninstall(self, application: str) -> None:
         """ Call `adb -s [SERIAL] uninstall [application]`
 
         Arguments:
@@ -421,19 +426,19 @@ class Android:
         """
         self._adb.uninstall(application)
 
-    def forward(self, command) -> str:
+    def forward(self, command: str) -> Optional[str]:
         """ Call `adb forward command`
 
         Arguments:
             command(str): A string of program arguments.
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         command = 'forward %s' % command
         return self._adb.adb(command)
 
-    def input(self, command, sync=True, debug=False) -> str or None:
+    def input(self, command: str, sync: bool = True, debug: bool = False) -> Optional[str]:
         """ Call `adb -s [SERIAL] shell input command`
 
         Arguments:
@@ -442,12 +447,12 @@ class Android:
             debug(bool): debug mode flag.
 
         Returns:
-            result(str): adb result or None.
+            result(Optional[str]): adb result or None.
         """
         command = 'input %s' % command
         return self._adb.shell(command, sync, debug)
 
-    def am(self, command, sync=True) -> str:
+    def am(self, command: str, sync: bool = True) -> Optional[str]:
         """ Call `adb -s [SERIAL] shell am command`
 
         Arguments:
@@ -455,12 +460,12 @@ class Android:
             sync(bool): target sync flag. false -> async(exec_bg()).
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         command = 'am %s' % command
         return self._adb.shell(command, sync=sync)
 
-    def tap(self, x, y) -> str:
+    def tap(self, x: int, y: int) -> Optional[str]:
         """ Call `adb -s [SERIAL] shell am input tap x y`
 
         Arguments:
@@ -468,36 +473,36 @@ class Android:
             y(int): position y.
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         command = 'tap %d %d' % (x, y)
         return self.input(command, sync=True)
 
-    def invoke(self, app) -> str:
+    def invoke(self, app: str) -> Optional[str]:
         """ Call `adb -s [SERIAL] shell am start -n [app]`
 
         Arguments:
             app(str): start app name.
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         command = 'start -n %s' % (app)
         return self.am(command)
 
-    def keyevent(self, code) -> str:
+    def keyevent(self, code: str) -> Optional[str]:
         """ Call `adb -s [SERIAL] shell am input keyevent [code]`
 
         Arguments:
             code(str): keycode.
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         command = 'keyevent %s ' % (code)
         return self.input(command, sync=True)
 
-    def text(self, command) -> None:
+    def text(self, command: str) -> None:
         """ Call `adb -s [SERIAL] shell am input text`
 
         Arguments:
@@ -508,7 +513,7 @@ class Android:
             self._text(arg)
             self.keyevent(self.get().KEYCODE_SPACE)
 
-    def _text(self, command) -> None:
+    def _text(self, command: str) -> None:
         """ Call `adb -s [SERIAL] shell am input text`
 
         Arguments:
@@ -517,32 +522,32 @@ class Android:
         command = 'text %s' % command
         self.input(command)
 
-    def stop(self, app) -> str:
+    def stop(self, app: str) -> Optional[str]:
         """ Call `adb -s [SERIAL] shell am force-stop [app]`
 
         Arguments:
             app(str): A string of application arguments.
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         package = app.split('/')[0]
         command = 'force-stop %s ' % (package)
         return self.am(command)
 
-    def getprop(self, prop) -> str:
+    def getprop(self, prop: str) -> Optional[str]:
         """ Call `adb -s [SERIAL] shell getprop [prop]`
 
         Arguments:
             prop(str): A string of property name.
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         command = 'getprop %s' % prop
         return self._adb.shell(command)
 
-    def setprop(self, prop, value) -> str:
+    def setprop(self, prop: str, value: str) -> Optional[str]:
         """ Call `adb -s [SERIAL] shell setprop [prop] [value]`
 
         Arguments:
@@ -550,7 +555,7 @@ class Android:
             value(str): A string of property arguments.
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         command = 'setprop %s %s' % (prop, value)
         return self._adb.shell(command)
@@ -560,11 +565,11 @@ class Android:
         """
         self.keyevent(self.get().KEYCODE_POWER)
 
-    def boot_completed(self) -> str:
+    def boot_completed(self) -> Optional[str]:
         """ Call `adb -s [SERIAL] shell getprop PROP_BOOT_COMPLETED`
 
         Returns:
-            result(str): adb result.
+            result(Optional[str]): adb result.
         """
         return self.getprop(self.get().PROP_BOOT_COMPLETED)
 
@@ -576,16 +581,19 @@ class Android:
         while self.boot_completed() != '1':
             time.sleep(5)
 
-    def rotate(self) -> int or None:
+    def rotate(self) -> Optional[int]:
         """ Get rotate value.
 
         Returns:
             result(int): adb result.
         """
         result = self.dumpsys('input')
+        if result is None:
+            return None
         if isinstance(result, bytes):
             result = result.encode()
-        result = result.split('\n')
-        for line in result:
+        result_code = result.split('\n')
+        for line in result_code:
             if line.find('SurfaceOrientation') >= 0:
                 return int(line.split(':')[1])
+        return None
