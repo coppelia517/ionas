@@ -3,6 +3,8 @@ urllib3>=1.24.2
 sphinx
 sphinx_rtd_theme
 Jinja2>=2.10.1
+pillow
+opencv-python
 pylint
 pylint-quotes
 flake8

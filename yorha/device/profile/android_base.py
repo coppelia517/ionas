@@ -9,6 +9,13 @@ class AndroidProp:
     PORT: str = ''
     TMP_PICTURE: str = ''
 
+    WIDTH: str = '1280'
+    HEIGHT: str = '720'
+    MINICAP_WIDTH: str = '1280'
+    MINICAP_HEIGHT: str = '720'
+    LOCATE: str = 'V'
+    ROTATE: str = '0'
+
     # adb keyevent
     KEYCODE_ENTER = 'KEYCODE_DPAD_CENTER'
     KEYCODE_RIGHT = 'KEYCODE_DPAD_RIGHT'
